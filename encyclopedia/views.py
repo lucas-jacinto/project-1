@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http  import  HttpResponseRedirect
 from django.urls import reverse
 from . import util
-from markdown2 import Markdown
+import markdown
 from django import forms
 
 
@@ -12,7 +12,7 @@ def index(request):
     })
 
 def entry(request, entry):
-    markdown = Markdown()
+    markdowner = markdown.Markdown()
     entryPages = util.get_entry(entry)
     if entryPages is None:
         return render(request, "encyclopedia/noExistEntry.html",{
@@ -20,7 +20,7 @@ def entry(request, entry):
         })
     else:
         return render(request, "encyclopedia/entry.html", {
-            "entry":markdown.convert(entryPages),
+            "entry":markdowner.convert(entryPages),
             "entryTitle": entry
         })
 
@@ -31,4 +31,17 @@ def search(request):
     else:
         StringEntries = []
         for entry in util.list_entries():
-            StringEntries.append(entry)
+            if value.upper() in entry.upper():
+                StringEntries.append(entry)
+
+        return render(request, "encyclopedia/index.html", {
+        "entries": StringEntries,
+        "search": True,
+        "value": value
+    })
+
+
+def random(request):
+    entries = util.list_entries()
+    randomEntries = secrets.choice(entries)
+    return HttpResponseRedirect(reverse("entry", kwargs={'entry':randomEntries}))
