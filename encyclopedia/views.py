@@ -3,7 +3,9 @@ from django.http  import  HttpResponseRedirect
 from django.urls import reverse
 from . import util
 import markdown
+import secrets
 from django import forms
+from django.contrib.auth.decorators import login_required
 
 
 def index(request):
@@ -74,6 +76,24 @@ def newEntry(request):
             })
     else:
         return render(request, "encyclopedia/newEntry.html", {
-        "form" : form,
-        "existing" :False
+            "form" : newEntryForm(),
+            "existing" :False
+        })
+
+def edit(request, entry):
+    entryPages = util.get_entry(entry)
+    if entryPages is None:
+        return render(request,"encyclopedia/noExistEntry.html", {
+            "entryTitle" : entry
+        })
+    else:
+        form = newEntryForm()
+        form.fields["title"].initial = entry
+        form.fields["title"].widget = forms.HiddenInput()
+        form.fields["content"].initial = entryPages
+        form.fields["edit"].initial = True
+        return render(request, "encyclopedia/newEntry.html",{
+            "form" : form,
+            "edit" : form.fields["edit"].initial,
+            "entryTitle" : form.fields["title"].initial
         })
