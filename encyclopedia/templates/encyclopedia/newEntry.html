@@ -5,7 +5,10 @@
 {% endblock %}
 
 {% block body %}
-   <h1>New Page</h1>
-
+   <h1>Create a New Page</h1>
+   <label>Title:</label>
+    <form action="{% url 'newEntry' %}" method="POST">
+    <input type="text" placeholder="Enter your Title"name="title"/>
+    </form>
 
 {% endblock %}
