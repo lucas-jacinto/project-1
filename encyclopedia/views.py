@@ -4,28 +4,29 @@ from django.urls import reverse
 from . import util
 import markdown
 import secrets
-from django import forms
-from django.contrib.auth.decorators import login_required
 
 
-def converterMarkdownToHtml(entry):
-    contents = util.get_entry(entry)
+
+
+def converterMarkdownToHtml(title):
+    content = util.get_entry(title)
     markdowner = markdown.Markdown()
-    if contents == None:
+    if content == None:
         return None
     else:
-        return markdowner.convert(contents)
+        return markdowner.convert(content)
 
 def index(request):
     return render(request, "encyclopedia/index.html", {
         "entries": util.list_entries()
     })
 
-def entry(request, entry):
-    contentsHtml = converterMarkdownToHtml(entry)
+def entry(request, title):
+    contentsHtml = converterMarkdownToHtml(title)
     if contentsHtml == None:
         return render(request, "encyclopedia/noExistEntry.html",{
-            "entryTitle": entry
+            "entryTitle": title,
+            "messageError": "This Page Does not Exist!"
         })
     else:
         return render(request, "encyclopedia/entry.html", {
@@ -36,7 +37,7 @@ def entry(request, entry):
 def search(request):
     value = request.GET.get("q",'')
     if(util.get_entry(value) is not None):
-        return HttpResponseRedirect(reverse("entry", kwargs={'entry': value }))
+        return HttpResponseRedirect(reverse("entry", kwargs={'title': value }))
     else:
         StringEntries = []
         for entry in util.list_entries():
@@ -53,13 +54,29 @@ def search(request):
 def random(request):
     entries = util.list_entries()
     randomEntries = secrets.choice(entries)
-    return HttpResponseRedirect(reverse("entry", kwargs={'entry':randomEntries}))
+    return HttpResponseRedirect(reverse("entry", kwargs={'title':randomEntries}))
 
 
 
 def newEntry(request):
     if request.method == "GET":
        return render(request, "encyclopedia/newEntry.html")
+    else:
+        title = request.POST['title']
+        content = request.POST.get('content', False)
+        existingTitle = util.get_entry(title)
+        if existingTitle is not None:
+            return render(request, "encyclopedia/noExistEntry.html", {
+                "messageError": "This Page Already Exist."
+            })
+        else:
+            util.save_entry(title, content)
+            contentHtml = converterMarkdownToHtml(title)
+            return render(request, "encyclopedia/entry.html",{
+                "title" : title,
+                "content": contentHtml
+            })
 
-def edit(request, entry):
+
+def edit(request, title):
     return render(request, "encyclopedia/edit.html")
