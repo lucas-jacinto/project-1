@@ -63,7 +63,7 @@ def newEntry(request):
        return render(request, "encyclopedia/newEntry.html")
     else:
         title = request.POST['title']
-        content = request.POST.get('content', False)
+        content = request.POST['content']
         existingTitle = util.get_entry(title)
         if existingTitle is not None:
             return render(request, "encyclopedia/noExistEntry.html", {
@@ -73,7 +73,7 @@ def newEntry(request):
             util.save_entry(title, content)
             contentHtml = converterMarkdownToHtml(title)
             return render(request, "encyclopedia/entry.html",{
-                "title" : title,
+                "title": title,
                 "content": contentHtml
             })
 
